@@ -1,30 +1,98 @@
-import { Request, Response } from 'express';
-import { HashManager } from '../service/HashManager';
-import { IdGenerator } from '../service/IdGenerator';
-import { User } from '../data/User';
+import { Authenticator } from "./../service/Authenticator";
+import { Request, Response } from "express";
+import { HashManager } from "../service/HashManager";
+import { IdGenerator } from "../service/IdGenerator";
+import { User } from "../data/User";
+import { BaseDatabase } from "../data/BaseDatabase";
 
-export const UserController = {
-    store: async (request: Request, response: Response): Promise<Response> => {
-        const { name, email, password } = request.body;
-        const userDb: User = new User();
+const userDb: User = new User();
+const hashManager: HashManager = new HashManager();
+const authenticator: Authenticator = new Authenticator();
 
-        if(password.length < 6) {
-            return response.status(400).json({ error: "Senha deve ter no mínimo 6 caracteres" });
-        }
+export const createUser = {
+  store: async (request: Request, response: Response): Promise<Response> => {
+    const { name, email, password } = request.body;
 
-        const idGenerator: IdGenerator = new IdGenerator();
-        const hashManager: HashManager = new HashManager();
-        const id: string = idGenerator.generate();
-
-        try {
-            const hashPassword: string = await hashManager.hash(password);
-
-            userDb.createUser(id, name, email, hashPassword);
-
-            return response.json({ success: true });
-        } catch {
-            return response.json({ success: false });
-        }
-
+    if (!name) {
+      return response.status(400).json({ error: "Nome incorreto." });
     }
-}
+
+    if (!email || email.indexOf("@") === -1) {
+      if (!email) {
+        return response
+          .status(400)
+          .json({ error: "E-mail deve ser preenchido." });
+      }
+      return response.status(400).json({ error: "E-mail inválido." });
+    }
+
+    if (!password || password.length < 6) {
+      if (!password) {
+        return response
+          .status(400)
+          .json({ error: "Senha deve ser preenchida." });
+      }
+      return response
+        .status(400)
+        .json({ error: "Senha deve ter no mínimo 6 caracteres." });
+    }
+
+    const idGenerator: IdGenerator = new IdGenerator();
+    const id: string = idGenerator.generate();
+    const token: string = authenticator.generateToken({ id });
+
+    try {
+      const hashPassword: string = await hashManager.hash(password);
+
+      userDb.createUser(id, name, email, hashPassword);
+
+      return response.json({ access_token: token });
+    } catch {
+      return response.json({ success: false });
+    }
+  },
+};
+
+export const login = {
+  store: async (request: Request, response: Response): Promise<Response> => {
+    const { email, password } = request.body;
+
+    if (!email || email.indexOf("@") === -1) {
+      if (!email) {
+        return response
+          .status(400)
+          .json({ error: "E-mail deve ser preenchido." });
+      }
+      return response.status(400).json({ error: "E-mail inválido." });
+    }
+
+    if (!password || password.length < 6) {
+      if (!password) {
+        return response
+          .status(400)
+          .json({ error: "Senha deve ser preenchida." });
+      }
+      return response
+        .status(400)
+        .json({ error: "Senha deve ter no mínimo 6 caracteres." });
+    }
+
+    try {
+      const user = await userDb.getUserByEmail(email);
+      const passwordCompare = await hashManager.compare(
+        password,
+        user.password
+      );
+
+      if (!passwordCompare) {
+        return response.status(400).json({ error: "Senha incorreta." });
+      }
+
+      const token = authenticator.generateToken({ id: user.id });
+
+      return response.json({ access_token: token });
+    } catch {
+      return response.json({ error: "Não encontrado" });
+    }
+  },
+};
