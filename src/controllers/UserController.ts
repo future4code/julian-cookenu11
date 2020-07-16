@@ -3,7 +3,6 @@ import { Request, Response } from "express";
 import { HashManager } from "../service/HashManager";
 import { IdGenerator } from "../service/IdGenerator";
 import { User } from "../data/User";
-import { BaseDatabase } from "../data/BaseDatabase";
 
 const userDb: User = new User();
 const hashManager: HashManager = new HashManager();
