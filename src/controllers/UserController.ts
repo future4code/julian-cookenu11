@@ -4,10 +4,8 @@ import { HashManager } from "../service/HashManager";
 import { IdGenerator } from "../service/IdGenerator";
 import { User } from "../data/User";
 
-const userDb: User = new User();
 const hashManager: HashManager = new HashManager();
 const authenticator: Authenticator = new Authenticator();
-
 
 export const UserController = {
   login: async (request: Request, response: Response): Promise<Response> => {
@@ -32,6 +30,8 @@ export const UserController = {
         .status(400)
         .json({ error: "Senha deve ter no mínimo 6 caracteres." });
     }
+
+    const userDb: User = new User();
 
     try {
       const user = await userDb.getUserByEmail(email);
@@ -82,6 +82,7 @@ export const UserController = {
     const idGenerator: IdGenerator = new IdGenerator();
     const id: string = idGenerator.generate();
     const token: string = authenticator.generateToken({ id });
+    const userDb: User = new User();
 
     try {
       const hashPassword: string = await hashManager.hash(password);
