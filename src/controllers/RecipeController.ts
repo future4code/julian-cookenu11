@@ -62,4 +62,50 @@ export const RecipeController = {
       return response.json({ error: "Receita não encontrada." });
     }
   },
+  update: async (request: Request, response: Response) => {
+    try {
+      const { title, description } = request.body;
+      const { id } = request.params;
+
+      if (title === "" || description === "" || !id) {
+        throw new Error("Parâmetros inválidos");
+      }
+
+      const token: string = request.headers.authorization as string;
+      const authenticator: Authenticator = new Authenticator();
+      const recipeDb: Recipe = new Recipe();
+      const user = authenticator.getData(token);
+
+      if (user.role === "normal") {
+        const recipe = await recipeDb.getRecipe(id);
+
+        if (recipe.user_id !== user.id) {
+          throw new Error("Edite sua própria receita.");
+        }
+      }
+      await recipeDb.editRecipe(id, title, description);
+      return response.json({ sucess: true });
+    } catch (error) {
+      return response.json({ error: error });
+    }
+  },
+  destroy: async (request: Request, response: Response) => {
+    try {
+      const { id } = request.params;
+      const token: string = request.headers.authorization as string;
+      const authenticator: Authenticator = new Authenticator();
+      const recipeDb: Recipe = new Recipe();
+      const user = authenticator.getData(token);
+      const recipe = await recipeDb.getRecipe(id);
+
+      if (user.role === "normal" && recipe.user_id !== user.id) {
+        throw new Error("Apague sua própria receita.");
+      }
+
+      await recipeDb.deleteRecipe(id);
+      return response.json({ sucess: true });
+    } catch (error) {
+      return response.json({ error: error });
+    }
+  },
 };

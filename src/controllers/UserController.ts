@@ -10,12 +10,12 @@ const authenticator: Authenticator = new Authenticator();
 export const UserController = {
   login: async (request: Request, response: Response): Promise<Response> => {
     const { email, password } = request.body;
-    
+
     if (!email || email.indexOf("@") === -1) {
       if (!email) {
         return response
-        .status(400)
-        .json({ error: "E-mail deve ser preenchido." });
+          .status(400)
+          .json({ error: "E-mail deve ser preenchido." });
       }
       return response.status(400).json({ error: "E-mail inválido." });
     }
@@ -30,7 +30,7 @@ export const UserController = {
         .status(400)
         .json({ error: "Senha deve ter no mínimo 6 caracteres." });
     }
-    
+
     const userDb: User = new User();
 
     try {
@@ -44,7 +44,10 @@ export const UserController = {
         return response.status(400).json({ error: "Senha incorreta." });
       }
 
-      const token = authenticator.generateToken({ id: user.id });
+      const token = authenticator.generateToken({
+        id: user.id,
+        role: user.role,
+      });
 
       return response.json({ access_token: token });
     } catch {
@@ -52,12 +55,15 @@ export const UserController = {
     }
   },
 
-  showProfile: async (request: Request, response: Response): Promise<Response> => {
+  showProfile: async (
+    request: Request,
+    response: Response
+  ): Promise<Response> => {
     const token: string = request.headers.authorization as string;
     const authenticator: Authenticator = new Authenticator();
-    
+
     const userDb: User = new User();
-    
+
     try {
       const authenticationData = authenticator.getData(token);
       const user = await userDb.getById(authenticationData.id);
@@ -65,7 +71,7 @@ export const UserController = {
       return response.json({
         id: user.id,
         name: user.name,
-        email: user.email
+        email: user.email,
       });
     } catch {
       return response.status(400).json({ success: false });
@@ -78,7 +84,7 @@ export const UserController = {
     const authenticator: Authenticator = new Authenticator();
 
     const userDb: User = new User();
-    
+
     try {
       authenticator.getData(token);
       const user = await userDb.getById(id);
@@ -86,7 +92,7 @@ export const UserController = {
       return response.json({
         id: user.id,
         name: user.name,
-        email: user.email
+        email: user.email,
       });
     } catch {
       return response.status(400).json({ success: false });
@@ -94,7 +100,7 @@ export const UserController = {
   },
 
   store: async (request: Request, response: Response): Promise<Response> => {
-    const { name, email, password } = request.body;
+    const { name, email, password, role } = request.body;
 
     if (!name) {
       return response.status(400).json({ error: "Nome incorreto." });
@@ -122,13 +128,13 @@ export const UserController = {
 
     const idGenerator: IdGenerator = new IdGenerator();
     const id: string = idGenerator.generate();
-    const token: string = authenticator.generateToken({ id });
+    const token: string = authenticator.generateToken({ id, role });
     const userDb: User = new User();
 
     try {
       const hashPassword: string = await hashManager.hash(password);
 
-      await userDb.createUser(id, name, email, hashPassword);
+      await userDb.createUser(id, name, email, hashPassword, role);
 
       return response.json({ access_token: token });
     } catch {

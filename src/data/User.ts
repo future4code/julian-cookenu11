@@ -5,7 +5,8 @@ export class User extends BaseDatabase {
     id: string,
     name: string,
     email: string,
-    password: string
+    password: string,
+    role: string
   ): Promise<any> {
     await this.getConnection()
       .insert({
@@ -13,6 +14,7 @@ export class User extends BaseDatabase {
         name,
         email,
         password,
+        role,
       })
       .into("UserCookenu");
   }
@@ -22,15 +24,15 @@ export class User extends BaseDatabase {
       .select("*")
       .from("UserCookenu")
       .where({ email });
-      return result[0];
+    return result[0];
   }
 
   public async getById(id: string): Promise<any> {
-    const [ result ] = await this.getConnection()
-      .select('*')
+    const [result] = await this.getConnection()
+      .select("*")
       .from("UserCookenu")
       .where({ id });
 
-      return result;
+    return result;
   }
 }

@@ -30,4 +30,30 @@ export class Recipe extends BaseDatabase {
       throw new Error(error.sqlMessage);
     }
   }
+
+  public async editRecipe(
+    id: string,
+    title: string,
+    description: string
+  ): Promise<any> {
+    try {
+      await this.getConnection()
+        .update({ title, description })
+        .from("RecipeCookenu")
+        .where("id", "=", id);
+    } catch (error) {
+      throw new Error(error.sqlMessage);
+    }
+  }
+
+  public async deleteRecipe(id: string): Promise<any> {
+    try {
+      await this.getConnection()
+        .delete()
+        .from("RecipeCookenu")
+        .where("id", "=", id);
+    } catch (error) {
+      throw new Error(error.sqlMessage);
+    }
+  }
 }
