@@ -20,21 +20,14 @@ export class UserFollowers extends BaseDatabase {
   public async getRecipeFeed(userId: string): Promise<any> {
     try {
       const feed = await this.getConnection()
-        .select(
-          `RecipeCookenu.id as id`,
-          `RecipeCookenu.title as title`,
-          `RecipeCookenu.description as description`,
-          `RecipeCookenu.created_at as createdAt`,
-          `RecipeCookenu.user_id as userId`,
-          `RecipeCookenu.user_name as userName`
-        )
+        .select("*")
         .from("RecipeCookenu")
         .join(
           "UserFollowersCookenu",
           "RecipeCookenu.user_id",
-          "UserFollowersCookenu.follower_id"
+          "UserFollowersCookenu.user_id"
         )
-        .where("UserFollowersCookenu.user_id", "=", userId)
+        .where("UserFollowersCookenu.follower_id", "=", userId )
         .orderBy("RecipeCookenu.created_at", "DESC");
       return feed;
     } catch (error) {
