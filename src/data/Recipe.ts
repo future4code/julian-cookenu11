@@ -5,12 +5,14 @@ export class Recipe extends BaseDatabase {
     id: string,
     userId: string,
     description: string,
-    title: string
+    title: string,
+    userName: string
   ): Promise<any> {
     try {
       await this.getConnection().raw(`
-        INSERT INTO RecipeCookenu (id, user_id, description, created_at, title)
-        VALUES ('${id}', '${userId}', '${description}', CURDATE(), '${title}')
+        INSERT INTO RecipeCookenu (id, user_id, description, created_at, title, user_name)
+        VALUES ('${id}', '${userId}', '${description}', CURDATE(), '${title}', 
+        '${userName}')
     `);
     } catch (error) {
       throw new Error(error);
@@ -27,11 +29,5 @@ export class Recipe extends BaseDatabase {
     } catch (error) {
       throw new Error(error.sqlMessage);
     }
-  }
-
-  public async getRecipeFeed(): Promise<any> {
-    try {
-      const feed = await this.getConnection().select("*").from("RecipeCookenu");
-    } catch (error) {}
   }
 }
