@@ -33,8 +33,6 @@ export const UserController = {
     
     const userDb: User = new User();
 
-    const userDb: User = new User();
-
     try {
       const user = await userDb.getUserByEmail(email);
       const passwordCompare = await hashManager.compare(
@@ -125,8 +123,6 @@ export const UserController = {
     const idGenerator: IdGenerator = new IdGenerator();
     const id: string = idGenerator.generate();
     const token: string = authenticator.generateToken({ id });
-    const userDb: User = new User();
-
     const userDb: User = new User();
 
     try {
